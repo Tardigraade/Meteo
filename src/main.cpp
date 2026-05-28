@@ -36,8 +36,7 @@ void testLvgl(void)
     
     lv_obj_set_flex_flow(colonne_droite, LV_FLEX_FLOW_COLUMN); // Empilement vertical
     lv_obj_set_style_pad_row(colonne_droite, 8, 0);            // Espace entre les deux carrés
-
-    
+ 
     lv_obj_t * card_interieur = lv_obj_create(colonne_droite);
     lv_obj_set_size(card_interieur, LV_PCT(100), 0); // Largeur 100%, hauteur gérée par le flex grow
     lv_obj_set_flex_grow(card_interieur, 1);
@@ -47,7 +46,7 @@ void testLvgl(void)
     lv_obj_t * label_int = lv_label_create(card_interieur);
     lv_obj_center(label_int);
     lv_label_set_text(label_int, "Interieur");
-
+    lv_label_set_text(label_int, " Interieur : \n Temp: 22°C\nHum: 45%"); // Exemple de données
  
     lv_obj_t * card_exterieur = lv_obj_create(colonne_droite);
     lv_obj_set_size(card_exterieur, LV_PCT(100), 0); // Largeur 100%, hauteur gérée par le flex grow
@@ -58,6 +57,7 @@ void testLvgl(void)
     lv_obj_t * label_ext = lv_label_create(card_exterieur);
     lv_obj_center(label_ext);
     lv_label_set_text(label_ext, "Exterieur");
+    lv_label_set_text(label_ext, "Exterieur : \nTemp: 18°C\nHum: 60%"); // Exemple de données
 }
 
 #ifdef ARDUINO
