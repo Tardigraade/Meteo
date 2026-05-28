@@ -67,10 +67,15 @@ void testLvgl(void)
 void mySetup()
 {
   testLvgl();
+  Serial.begin(115200);
 }
 
 void loop()
 {
+    Serial.println("Looping...");
+    delay(1000);
+
+    
 }
 
 void myTask(void *pvParameters)
