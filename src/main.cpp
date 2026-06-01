@@ -1,11 +1,18 @@
 #include "lvgl.h"
+static float t_interieur = 0.0;
+static float h_interieur = 0.0;
+static float t_exterieur = 0.0;
+static float h_exterieur = 0.0;
+static bool nouvelles_donnees_dispo = false;
 
+static lv_obj_t * label_int;
+static lv_obj_t * label_ext;
 
 
 
 void testLvgl(void)
 {
-    /* 1. Création d'un style super simple pour les carrés (Fond blanc, bordure noire) */
+
     static lv_style_t style_carre;
     lv_style_init(&style_carre);
     //lv_style_set_bg_color(&style_carre, lv_color_hex(0xffffff)); // Fond blanc
@@ -14,7 +21,6 @@ void testLvgl(void)
     lv_style_set_border_width(&style_carre, 4); // Épaisseur de la bordure
     lv_style_set_radius(&style_carre, 10); // Coins légèrement arrondis comme le dessin
 
-    /* 2. Configurer l'écran pour aligner la partie Gauche et la partie Droite côte à côte */
     lv_obj_t * screen = lv_screen_active();
     lv_obj_set_flex_flow(screen, LV_FLEX_FLOW_ROW);
     lv_obj_set_style_pad_all(screen, 8, 0);        // Marge au bord de l'écran
@@ -35,15 +41,14 @@ void testLvgl(void)
     lv_obj_set_style_pad_all(colonne_droite, 0, 0);
     
     lv_obj_set_flex_flow(colonne_droite, LV_FLEX_FLOW_COLUMN); // Empilement vertical
-    lv_obj_set_style_pad_row(colonne_droite, 8, 0);            // Espace entre les deux carrés
- 
+    lv_obj_set_style_pad_row(colonne_droite, 8, 0);            
     lv_obj_t * card_interieur = lv_obj_create(colonne_droite);
     lv_obj_set_size(card_interieur, LV_PCT(100), 0); // Largeur 100%, hauteur gérée par le flex grow
     lv_obj_set_flex_grow(card_interieur, 1);
     lv_obj_add_style(card_interieur, &style_carre, 0);
     lv_obj_set_scrollbar_mode(card_interieur, LV_SCROLLBAR_MODE_OFF);
     lv_obj_set_style_bg_color(card_interieur, lv_palette_main(LV_PALETTE_BLUE), 0);// couleur
-    lv_obj_t * label_int = lv_label_create(card_interieur);
+    label_int = lv_label_create(card_interieur);
     lv_obj_center(label_int);
     lv_label_set_text(label_int, "Interieur");
     lv_label_set_text(label_int, " Interieur : \n Temp: 22°C\nHum: 45%"); // Exemple de données
@@ -60,22 +65,79 @@ void testLvgl(void)
     lv_label_set_text(label_ext, "Exterieur : \nTemp: 18°C\nHum: 60%"); // Exemple de données
 }
 
+#define ARDUINO  // Commenter cette ligne pour compiler en mode simulateur PC
+
 #ifdef ARDUINO
 
 #include "lvglDrivers.h"
+#include "lvglDrivers.h"
+#include "DHT.h"
+
+#define DHTPIN D2
+#define DHTPIN2 D4
+#define DHTTYPE DHT22     
+DHT dht(DHTPIN, DHTTYPE);
+DHT dht2(DHTPIN2, DHTTYPE);
+
+unsigned long lastDHTRead = 0;
+unsigned long lastDHTRead2 = 0;
+const unsigned long dhtInterval = 2000;
 
 void mySetup()
 {
   testLvgl();
   Serial.begin(115200);
+//  pinMode(PG7, INPUT_PULLUP);
+  dht.begin();
+  dht2.begin();
+  Serial.println("Setup done");
 }
 
 void loop()
 {
-    Serial.println("Looping...");
-    delay(1000);
-
     
+    if (millis() - lastDHTRead >= dhtInterval) {
+        lastDHTRead = millis();
+        
+        float h = dht.readHumidity();
+        float t = dht.readTemperature();
+
+       
+        if (!isnan(h) && !isnan(t)) {
+            t_interieur = t;
+            h_interieur = h;
+            nouvelles_donnees_dispo = true; 
+            Serial.print("Interieur -> Temp: ");
+            Serial.print(t_interieur);
+            Serial.print(" °C | Hum: ");
+            Serial.print(h_interieur);
+            Serial.println(" %");
+        } else {
+            Serial.println("Erreur");
+        }
+    }
+    
+    if (millis() - lastDHTRead2 >= dhtInterval) {
+        lastDHTRead2 = millis();
+        
+        float h2 = dht2.readHumidity();
+        float t2 = dht2.readTemperature();
+
+        if (!isnan(h2) && !isnan(t2)) {
+            t_exterieur = t2;
+            h_exterieur = h2;
+            nouvelles_donnees_dispo = true; 
+            Serial.print("Exterieur -> Temp: ");
+            Serial.print(t2);
+            Serial.print(" °C | Hum: ");
+            Serial.print(h2);
+            Serial.println(" %");
+        } else {
+            Serial.println("Erreur");
+        }
+    }
+    
+    delay(10); 
 }
 
 void myTask(void *pvParameters)
@@ -83,6 +145,16 @@ void myTask(void *pvParameters)
   TickType_t xLastWakeTime = xTaskGetTickCount();
   while (1)
   {
+    // Si la loop() a capté de vraies valeurs, on met à jour l'affichage
+    if (nouvelles_donnees_dispo) {
+        if (label_int != NULL) {
+            lv_label_set_text_fmt(label_int, "Interieur :\nTemp: %.1f°C\nHum: %.1f%%", t_interieur, h_interieur);
+            lv_label_set_text_fmt(label_int, "Exterieur :\nTemp: %.1f°C\nHum: %.1f%%", t_exterieur, h_exterieur);
+            
+        }
+        nouvelles_donnees_dispo = false; 
+    }
+    
     lv_timer_handler(); 
     vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(15)); 
   }
@@ -109,4 +181,3 @@ int main(void)
 }
 
 #endif
-
