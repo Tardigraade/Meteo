@@ -52,6 +52,7 @@ void testLvgl(void)
     lv_obj_center(label_int);
     lv_label_set_text(label_int, "Interieur");
     lv_label_set_text(label_int, " Interieur : \n Temp: 22°C\nHum: 45%"); // Exemple de données
+    lv_label_set_text(label_int, "Interieur :\nTemp: 22.5°C\nHum: 45.3%"); // Exemple de données
  
     lv_obj_t * card_exterieur = lv_obj_create(colonne_droite);
     lv_obj_set_size(card_exterieur, LV_PCT(100), 0); // Largeur 100%, hauteur gérée par le flex grow
@@ -96,41 +97,26 @@ void mySetup()
 void loop()
 {
     
-    if (millis() - lastDHTRead >= dhtInterval) {
+    if ((millis() - lastDHTRead >= dhtInterval)|| (millis() - lastDHTRead2 >= dhtInterval)) {
         lastDHTRead = millis();
+        lastDHTRead2 = millis();
         
         float h = dht.readHumidity();
         float t = dht.readTemperature();
+        float h2 = dht2.readHumidity();
+        float t2 = dht2.readTemperature();
 
        
-        if (!isnan(h) && !isnan(t)) {
+        if ((!isnan(h) && !isnan(t)) || (!isnan(h2) && !isnan(t2))) {
             t_interieur = t;
             h_interieur = h;
+            t_exterieur = t2;
+            h_exterieur = h2;
             nouvelles_donnees_dispo = true; 
             Serial.print("Interieur -> Temp: ");
             Serial.print(t_interieur);
             Serial.print(" °C | Hum: ");
             Serial.print(h_interieur);
-            Serial.println(" %");
-        } else {
-            Serial.println("Erreur");
-        }
-    }
-    
-    if (millis() - lastDHTRead2 >= dhtInterval) {
-        lastDHTRead2 = millis();
-        
-        float h2 = dht2.readHumidity();
-        float t2 = dht2.readTemperature();
-
-        if (!isnan(h2) && !isnan(t2)) {
-            t_exterieur = t2;
-            h_exterieur = h2;
-            nouvelles_donnees_dispo = true; 
-            Serial.print("Exterieur -> Temp: ");
-            Serial.print(t2);
-            Serial.print(" °C | Hum: ");
-            Serial.print(h2);
             Serial.println(" %");
         } else {
             Serial.println("Erreur");
