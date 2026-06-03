@@ -1,10 +1,10 @@
 #include "lvgl.h"
 
-static float t_interieur = 0.0;
-static float h_interieur = 0.0;
-static float t_exterieur = 0.0;
-static float h_exterieur = 0.0;
-static bool nouvelles_donnees_dispo = false;
+volatile static float t_interieur = 0.0;
+volatile static float h_interieur = 0.0;
+volatile static float t_exterieur = 0.0;
+volatile static float h_exterieur = 0.0;
+volatile static bool nouvelles_donnees_dispo = false;
 
 static lv_obj_t * label_int;
 static lv_obj_t * label_ext; // Utilisé correctement de manière globale maintenant
@@ -23,7 +23,7 @@ void testLvgl(void)
     lv_obj_set_style_pad_all(screen, 8, 0);        
     lv_obj_set_style_pad_column(screen, 8, 0);     
 
-    // --- CARD DASHBOARD ---
+   
     lv_obj_t * card_dashboard = lv_obj_create(screen);
     lv_obj_set_size(card_dashboard, 224, LV_PCT(100)); 
     lv_obj_add_style(card_dashboard, &style_carre, 0);
@@ -34,7 +34,6 @@ void testLvgl(void)
     lv_obj_center(label_dash);
     lv_label_set_text(label_dash, "Dashboard");
 
-    // --- COLONNE DROITE ---
     lv_obj_t * colonne_droite = lv_obj_create(screen);
     lv_obj_set_size(colonne_droite, 224, LV_PCT(100));
     lv_obj_set_style_bg_opa(colonne_droite, LV_OPA_TRANSP, 0); 
@@ -43,7 +42,7 @@ void testLvgl(void)
     lv_obj_set_flex_flow(colonne_droite, LV_FLEX_FLOW_COLUMN); 
     lv_obj_set_style_pad_row(colonne_droite, 8, 0);            
 
-    // --- CARD INTERIEUR ---
+  
     lv_obj_t * card_interieur = lv_obj_create(colonne_droite);
     lv_obj_set_size(card_interieur, LV_PCT(100), 0); 
     lv_obj_set_flex_grow(card_interieur, 1);
@@ -53,10 +52,10 @@ void testLvgl(void)
 
     label_int = lv_label_create(card_interieur);
     lv_obj_center(label_int);
-    // Correction : Utilisation de _fmt pour l'initialisation avec les floats
-    lv_label_set_text_fmt(label_int, "Interieur :\nTemp: %.1f°C\nHum: %.1f%%", t_interieur, h_interieur); 
+
+    //lv_label_set_text_fmt(label_int, "Interieur :\nTemp: %.1f°C\nHum: %.1f%%", t_interieur, h_interieur); 
+    lv_label_set_text(label_int, "Interieur :\nTemp: --.-C\nHum: --.-%");
  
-    // --- CARD EXTERIEUR ---
     lv_obj_t * card_exterieur = lv_obj_create(colonne_droite);
     lv_obj_set_size(card_exterieur, LV_PCT(100), 0); 
     lv_obj_set_flex_grow(card_exterieur, 1);
@@ -66,8 +65,8 @@ void testLvgl(void)
     // Correction : Affectation à la variable GLOBALE (pas de "lv_obj_t *")
     label_ext = lv_label_create(card_exterieur);
     lv_obj_center(label_ext);
-    // Correction : Utilisation de _fmt pour l'initialisation
-    lv_label_set_text_fmt(label_ext, "Exterieur :\nTemp: %.1f°C\nHum: %.1f%%", t_exterieur, h_exterieur); 
+    lv_label_set_text(label_ext, "Exterieur :\nTemp: --.-C\nHum: --.-%");
+    //lv_label_set_text_fmt(label_ext, "Exterieur :\nTemp: %.1f°C\nHum: %.1f%%", t_exterieur, h_exterieur); 
 }
 
 #define ARDUINO  
@@ -92,6 +91,14 @@ void mySetup()
   Serial.begin(115200);
   dht.begin();
   dht2.begin();
+  // Créer la tâche pour LVGL
+  xTaskCreate(
+    myTask,          
+    "LVGL Task",     
+    4096,            
+    NULL,           
+    3,             
+    NULL);
   Serial.println("Setup done");
 }
 
@@ -105,7 +112,7 @@ void loop()
         
         float h2 = dht2.readHumidity();
         float t2 = dht2.readTemperature();
-        delay(1000); // Petit délai pour éviter les lectures trop rapides
+        
 
         float h = dht.readHumidity();
         float t = dht.readTemperature();
@@ -143,7 +150,7 @@ void loop()
         }
     }
     
-    delay(1000); 
+    //delay(1000); 
 }
 void myTask(void *pvParameters)
 {
@@ -151,12 +158,25 @@ void myTask(void *pvParameters)
   while (1)
   {
     if (nouvelles_donnees_dispo) {
-        // Correction : On met à jour l'intérieur ET l'extérieur sur leurs labels respectifs
+        
         if (label_int != NULL) {
-            lv_label_set_text_fmt(label_int, "Interieur :\nTemp: %.1f°C\nHum: %.1f%%", t_interieur, h_interieur);
+            
+            lv_label_set_text_fmt(label_int, "Interieur :\nTemp: %d.%dC\nHum: %d.%d%%",
+                // Utilisation de %d pour afficher la partie entière et décimale séparément
+                (int)t_interieur,
+                (int)(t_interieur * 10) % 10,
+                (int)h_interieur,
+                (int)(h_interieur * 10) % 10
+            );
         }
         if (label_ext != NULL) {
-            lv_label_set_text_fmt(label_ext, "Exterieur :\nTemp: %.1f°C\nHum: %.1f%%", t_exterieur, h_exterieur);
+            
+            lv_label_set_text_fmt(label_ext, "Exterieur :\nTemp: %d.%dC\nHum: %d.%d%%",
+                (int)t_exterieur,
+                (int)(t_exterieur * 10) % 10,
+                (int)h_exterieur,
+                (int)(h_exterieur * 10) % 10
+            );
         }
         nouvelles_donnees_dispo = false; 
     }
