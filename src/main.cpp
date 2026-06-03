@@ -77,8 +77,8 @@ void testLvgl(void)
 #include "lvglDrivers.h"
 #include "DHT.h"
 
-#define DHTPIN D2
-#define DHTPIN2 D4
+#define DHTPIN D2//D2
+#define DHTPIN2 D4//D4
 #define DHTTYPE DHT22     
 DHT dht(DHTPIN, DHTTYPE);
 DHT dht2(DHTPIN2, DHTTYPE);
@@ -102,10 +102,13 @@ void loop()
     if (currentMillis - lastDHTRead >= dhtInterval) {
         lastDHTRead = currentMillis;
         
-        float h = dht.readHumidity();
-        float t = dht.readTemperature();
+        
         float h2 = dht2.readHumidity();
         float t2 = dht2.readTemperature();
+        delay(1000); // Petit délai pour éviter les lectures trop rapides
+
+        float h = dht.readHumidity();
+        float t = dht.readTemperature();
 
         bool change = false;
 
@@ -140,9 +143,8 @@ void loop()
         }
     }
     
-    delay(10); 
+    delay(1000); 
 }
-
 void myTask(void *pvParameters)
 {
   TickType_t xLastWakeTime = xTaskGetTickCount();
