@@ -7,66 +7,46 @@ volatile static float h_exterieur = 0.0;
 volatile static bool nouvelles_donnees_dispo = false;
 
 static lv_obj_t * label_int;
-static lv_obj_t * label_ext; // Utilisé correctement de manière globale maintenant
+static lv_obj_t * label_ext; 
+
 
 void testLvgl(void)
 {
     static lv_style_t style_carre;
     lv_style_init(&style_carre);
     lv_style_set_bg_opa(&style_carre, LV_OPA_COVER);
-    lv_style_set_border_color(&style_carre, lv_color_hex(0x000000)); // Bordure noire
-    lv_style_set_border_width(&style_carre, 4); 
-    lv_style_set_radius(&style_carre, 10); 
+    lv_style_set_border_color(&style_carre, lv_color_hex(0x000000));
+    lv_style_set_border_width(&style_carre, 4);
+    lv_style_set_radius(&style_carre, 10);
 
     lv_obj_t * screen = lv_screen_active();
     lv_obj_set_flex_flow(screen, LV_FLEX_FLOW_ROW);
-    lv_obj_set_style_pad_all(screen, 8, 0);        
-    lv_obj_set_style_pad_column(screen, 8, 0);     
+    lv_obj_set_style_pad_all(screen, 8, 0);
+    lv_obj_set_style_pad_column(screen, 8, 0);
 
-   
-    lv_obj_t * card_dashboard = lv_obj_create(screen);
-    lv_obj_set_size(card_dashboard, 224, LV_PCT(100)); 
-    lv_obj_add_style(card_dashboard, &style_carre, 0);
-    lv_obj_set_scrollbar_mode(card_dashboard, LV_SCROLLBAR_MODE_OFF);
-    lv_obj_set_style_bg_color(card_dashboard, lv_palette_main(LV_PALETTE_GREEN), 0);
-
-    lv_obj_t * label_dash = lv_label_create(card_dashboard);
-    lv_obj_center(label_dash);
-    lv_label_set_text(label_dash, "Dashboard");
-
-    lv_obj_t * colonne_droite = lv_obj_create(screen);
-    lv_obj_set_size(colonne_droite, 224, LV_PCT(100));
-    lv_obj_set_style_bg_opa(colonne_droite, LV_OPA_TRANSP, 0); 
-    lv_obj_set_style_border_width(colonne_droite, 0, 0);      
-    lv_obj_set_style_pad_all(colonne_droite, 0, 0);
-    lv_obj_set_flex_flow(colonne_droite, LV_FLEX_FLOW_COLUMN); 
-    lv_obj_set_style_pad_row(colonne_droite, 8, 0);            
-
-  
-    lv_obj_t * card_interieur = lv_obj_create(colonne_droite);
-    lv_obj_set_size(card_interieur, LV_PCT(100), 0); 
+    /* Carte Intérieur — moitié gauche */
+    lv_obj_t * card_interieur = lv_obj_create(screen);
     lv_obj_set_flex_grow(card_interieur, 1);
+    lv_obj_set_size(card_interieur, LV_PCT(50), LV_PCT(100));
     lv_obj_add_style(card_interieur, &style_carre, 0);
     lv_obj_set_scrollbar_mode(card_interieur, LV_SCROLLBAR_MODE_OFF);
     lv_obj_set_style_bg_color(card_interieur, lv_palette_main(LV_PALETTE_BLUE), 0);
 
     label_int = lv_label_create(card_interieur);
     lv_obj_center(label_int);
-
-    //lv_label_set_text_fmt(label_int, "Interieur :\nTemp: %.1f°C\nHum: %.1f%%", t_interieur, h_interieur); 
     lv_label_set_text(label_int, "Interieur :\nTemp: --.-C\nHum: --.-%");
- 
-    lv_obj_t * card_exterieur = lv_obj_create(colonne_droite);
-    lv_obj_set_size(card_exterieur, LV_PCT(100), 0); 
+
+    /* Carte Extérieur — moitié droite */
+    lv_obj_t * card_exterieur = lv_obj_create(screen);
     lv_obj_set_flex_grow(card_exterieur, 1);
+    lv_obj_set_size(card_exterieur, LV_PCT(50), LV_PCT(100));
     lv_obj_add_style(card_exterieur, &style_carre, 0);
     lv_obj_set_scrollbar_mode(card_exterieur, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_set_style_bg_color(card_exterieur, lv_palette_main(LV_PALETTE_RED), 0);
 
-    // Correction : Affectation à la variable GLOBALE (pas de "lv_obj_t *")
     label_ext = lv_label_create(card_exterieur);
     lv_obj_center(label_ext);
     lv_label_set_text(label_ext, "Exterieur :\nTemp: --.-C\nHum: --.-%");
-    //lv_label_set_text_fmt(label_ext, "Exterieur :\nTemp: %.1f°C\nHum: %.1f%%", t_exterieur, h_exterieur); 
 }
 
 #define ARDUINO  
