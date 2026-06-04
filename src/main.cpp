@@ -1,5 +1,5 @@
 #include "lvgl.h"
-
+//
 volatile static float t_interieur = 0.0;
 volatile static float h_interieur = 0.0;
 volatile static float t_exterieur = 0.0;
@@ -24,19 +24,19 @@ void testLvgl(void)
     lv_obj_set_style_pad_all(screen, 8, 0);
     lv_obj_set_style_pad_column(screen, 8, 0);
 
-    /* Carte Intérieur — moitié gauche */
+
     lv_obj_t * card_interieur = lv_obj_create(screen);
     lv_obj_set_flex_grow(card_interieur, 1);
     lv_obj_set_size(card_interieur, LV_PCT(50), LV_PCT(100));
     lv_obj_add_style(card_interieur, &style_carre, 0);
     lv_obj_set_scrollbar_mode(card_interieur, LV_SCROLLBAR_MODE_OFF);
-    lv_obj_set_style_bg_color(card_interieur, lv_palette_main(LV_PALETTE_BLUE), 0);
+    lv_obj_set_style_bg_color(card_interieur, lv_palette_main(LV_PALETTE_GREEN), 0);
 
     label_int = lv_label_create(card_interieur);
     lv_obj_center(label_int);
     lv_label_set_text(label_int, "Interieur :\nTemp: --.-C\nHum: --.-%");
 
-    /* Carte Extérieur — moitié droite */
+  
     lv_obj_t * card_exterieur = lv_obj_create(screen);
     lv_obj_set_flex_grow(card_exterieur, 1);
     lv_obj_set_size(card_exterieur, LV_PCT(50), LV_PCT(100));
