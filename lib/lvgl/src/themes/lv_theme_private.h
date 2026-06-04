@@ -14,7 +14,6 @@ extern "C" {
  *      INCLUDES
  *********************/
 
-#include "../misc/lv_ext_data.h"
 #include "lv_theme.h"
 
 /*********************
@@ -25,10 +24,7 @@ extern "C" {
  *      TYPEDEFS
  **********************/
 
-struct _lv_theme_t {
-#if LV_USE_EXT_DATA
-    lv_ext_data_t ext_data;
-#endif
+struct lv_theme_t {
     lv_theme_apply_cb_t apply_cb;
     lv_theme_t * parent;            /**< Apply the current theme's style on top of this theme. */
     void * user_data;

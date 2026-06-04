@@ -28,23 +28,6 @@ extern "C" {
 
 LV_ATTRIBUTE_EXTERN_DATA extern const lv_obj_class_t lv_switch_class;
 
-#if LV_USE_OBJ_PROPERTY
-enum _lv_property_switch_id_t {
-    LV_PROPERTY_ID(SWITCH, ORIENTATION, LV_PROPERTY_TYPE_INT, 0),
-    LV_PROPERTY_SWITCH_END,
-};
-#endif
-
-/**********************
- *      TYPEDEFS
- **********************/
-
-typedef enum {
-    LV_SWITCH_ORIENTATION_AUTO,
-    LV_SWITCH_ORIENTATION_HORIZONTAL,
-    LV_SWITCH_ORIENTATION_VERTICAL
-} lv_switch_orientation_t;
-
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
@@ -55,28 +38,6 @@ typedef enum {
  * @return          pointer to the created switch
  */
 lv_obj_t * lv_switch_create(lv_obj_t * parent);
-
-/*=====================
- * Setter functions
- *====================*/
-
-/**
- * Set the orientation of switch.
- * @param obj           pointer to switch object
- * @param orientation   switch orientation from `lv_switch_orientation_t`
- */
-void lv_switch_set_orientation(lv_obj_t * obj, lv_switch_orientation_t orientation);
-
-/*=====================
- * Getter functions
- *====================*/
-
-/**
- * Get the orientation of switch.
- * @param obj       pointer to switch object
- * @return          switch orientation from ::lv_switch_orientation_t
- */
-lv_switch_orientation_t lv_switch_get_orientation(lv_obj_t * obj);
 
 /**********************
  *      MACROS
