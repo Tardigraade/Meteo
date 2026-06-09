@@ -68,45 +68,7 @@ static void my_read_cb(lv_indev_t *indev, lv_indev_data_t *data)
         data->state = LV_INDEV_STATE_RELEASED;
     }
 }
-
-void setup()
-{
-    Serial.begin(115200);
-    Serial.println("Start");
-
-    BSP_LCD_Init();
-    BSP_LCD_LayerDefaultInit(0, LCD_FB_START_ADDRESS);
-
-    BSP_TS_Init(480, 272);
-
-    lvglMutex = xSemaphoreCreateMutex();
-
-    lv_init();
-
-    lv_log_register_print_cb([](lv_log_level_t level, const char *buf) {
-        Serial.printf("%s", buf);
-    });
-
-    lv_display_t *display = lv_display_create(480, 272);
-
-    lv_display_set_flush_cb(display, my_flush_cb);
-
-    static uint32_t buf[480 * 272 / 10];
-
-    lv_display_set_buffers(display, buf, NULL, sizeof(buf), LV_DISPLAY_RENDER_MODE_PARTIAL);
-
-    lv_indev_t *indev = lv_indev_create();
-    lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
-    lv_indev_set_read_cb(indev, my_read_cb);
-
-    lv_tick_set_cb(xTaskGetTickCount);
-
-    mySetup();
-
-    xTaskCreate(lvglTask, NULL, 16384, NULL, osPriorityNormal, NULL);
-    xTaskCreate(myTask, NULL, 16384, NULL, osPriorityNormal, NULL);
-
-    vTaskStartScheduler();
-    Serial.println("Insufficient RAM");
-    while (1);
+static uint32_t my_tick_get_cb(void) {
+    return (uint32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
 }
+
