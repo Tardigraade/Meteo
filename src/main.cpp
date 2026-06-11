@@ -8,14 +8,14 @@ volatile static float t_exterieur = 0.0;
 volatile static float h_exterieur = 0.0;
 volatile static bool nouvelles_donnees_dispo = false;
 
-// Variables des seuils (Valeurs par défaut)
+// Variables des seuils 
 volatile static float t_int_min = 18.0, t_int_max = 25.0;
 volatile static float h_int_min = 40.0, h_int_max = 60.0;
 
 volatile static float t_ext_min = 0.0,  t_ext_max = 35.0;
 volatile static float h_ext_min = 30.0, h_ext_max = 70.0;
 
-// Objets LVGL globaux (Dashboard)
+// Objets LVGL globaux 
 static lv_obj_t * arc_temp_int;
 static lv_obj_t * label_temp_int_val;
 static lv_obj_t * label_int; 
@@ -28,7 +28,7 @@ static lv_obj_t * label_ext;
 static lv_obj_t * alerte_t_ext;
 static lv_obj_t * alerte_h_ext;
 
-// Objets LVGL globaux (Labels des seuils)
+// Objets LVGL globaux 
 static lv_obj_t * lbl_cfg_t_int_min; static lv_obj_t * lbl_cfg_t_int_max;
 static lv_obj_t * lbl_cfg_h_int_min; static lv_obj_t * lbl_cfg_h_int_max;
 
@@ -39,9 +39,22 @@ static lv_obj_t * lbl_cfg_h_ext_min; static lv_obj_t * lbl_cfg_h_ext_max;
 extern bool lvglLock(TickType_t xBlockTime);
 extern bool lvglUnlock();
 
-// CALLBACKS DES SLIDERS
+// Navigation entre onglets 
+static void cb_click_card_int(lv_event_t * e) {
+    lv_obj_t * tabview = (lv_obj_t *)lv_event_get_user_data(e);
+    // 1 correspond à l'index du 2ème onglet (Seuils Int), avec animation
+    lv_tabview_set_active(tabview, 1, LV_ANIM_ON); 
+}
 
-//  Intérieur 
+static void cb_click_card_ext(lv_event_t * e) {
+    lv_obj_t * tabview = (lv_obj_t *)lv_event_get_user_data(e);
+    // 2 correspond à l'index du 3ème onglet (Seuils Ext), avec animation
+    lv_tabview_set_active(tabview, 2, LV_ANIM_ON); 
+}
+
+// sliders callbacks
+
+// Intérieur 
 static void cb_t_int_min(lv_event_t * e) {
     t_int_min = (float)lv_slider_get_value((lv_obj_t *)lv_event_get_target(e));
     lv_label_set_text_fmt(lbl_cfg_t_int_min, "Temp Min: %d°C", (int)t_int_min);
@@ -59,7 +72,7 @@ static void cb_h_int_max(lv_event_t * e) {
     lv_label_set_text_fmt(lbl_cfg_h_int_max, "Hum Max: %d%%", (int)h_int_max);
 }
 
-// -- Extérieur --
+// Extérieur 
 static void cb_t_ext_min(lv_event_t * e) {
     t_ext_min = (float)lv_slider_get_value((lv_obj_t *)lv_event_get_target(e));
     lv_label_set_text_fmt(lbl_cfg_t_ext_min, "Temp Min: %d°C", (int)t_ext_min);
@@ -89,6 +102,8 @@ static void creer_slider_reglage(lv_obj_t * parent, const char * titre, int min_
     lv_obj_add_event_cb(slider, cb, LV_EVENT_VALUE_CHANGED, NULL);
 }
 
+// FONCTION PRINCIPALE LVGL 
+
 void testLvgl(void)
 {
     lv_obj_t * screen = lv_screen_active();
@@ -108,11 +123,11 @@ void testLvgl(void)
     lv_style_set_border_width(&style_carre, 4);
     lv_style_set_radius(&style_carre, 10);
 
-    //  DASHBOARD 
+    // Dashboard 
     lv_obj_set_flex_flow(tab_dash, LV_FLEX_FLOW_ROW);
     lv_obj_set_style_pad_all(tab_dash, 4, 0);
 
-    // --- Carte Interieur ---
+    // Intérieur
     lv_obj_t * card_interieur = lv_obj_create(tab_dash);
     lv_obj_set_flex_grow(card_interieur, 1);
     lv_obj_set_height(card_interieur, LV_PCT(100));
@@ -121,6 +136,10 @@ void testLvgl(void)
     lv_obj_set_style_bg_color(card_interieur, lv_palette_main(LV_PALETTE_GREEN), 0);
     lv_obj_set_flex_flow(card_interieur, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(card_interieur, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+
+    // Rendre la carte cliquable et ajouter l'événement de redirection en lui passant le pointeur du tabview
+    lv_obj_add_flag(card_interieur, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_event_cb(card_interieur, cb_click_card_int, LV_EVENT_CLICKED, tabview);
 
     lv_obj_t * titre_int = lv_label_create(card_interieur);
     lv_label_set_text(titre_int, "Interieur");
@@ -149,7 +168,7 @@ void testLvgl(void)
     lv_obj_set_style_text_color(alerte_h_int, lv_palette_main(LV_PALETTE_RED), 0);
     lv_obj_add_flag(alerte_h_int, LV_OBJ_FLAG_HIDDEN); 
 
-    // Carte Exterieur 
+    // Extérieur
     lv_obj_t * card_exterieur = lv_obj_create(tab_dash);
     lv_obj_set_flex_grow(card_exterieur, 1);
     lv_obj_set_height(card_exterieur, LV_PCT(100));
@@ -158,6 +177,10 @@ void testLvgl(void)
     lv_obj_set_style_bg_color(card_exterieur, lv_palette_main(LV_PALETTE_RED), 0);
     lv_obj_set_flex_flow(card_exterieur, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(card_exterieur, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+
+    // Rendre la carte cliquable et ajouter l'événement de redirection
+    lv_obj_add_flag(card_exterieur, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_event_cb(card_exterieur, cb_click_card_ext, LV_EVENT_CLICKED, tabview);
 
     lv_obj_t * titre_ext = lv_label_create(card_exterieur);
     lv_label_set_text(titre_ext, "Exterieur");
@@ -276,7 +299,7 @@ void myTask(void *pvParameters)
         
         if (lvglLock(pdMS_TO_TICKS(100))) {
             
-            // MISE A JOUR INTERIEUR 
+            // maj intérieur
             if (arc_temp_int != NULL) {
                 lv_arc_set_value(arc_temp_int, (int)t_interieur);
                 lv_label_set_text_fmt(label_temp_int_val, "%d.%d°C", (int)t_interieur, abs((int)(t_interieur * 10) % 10));
@@ -307,7 +330,7 @@ void myTask(void *pvParameters)
                 lv_obj_add_flag(alerte_h_int, LV_OBJ_FLAG_HIDDEN);
             }
 
-            // MISE A JOUR EXTERIEUR 
+            // maj extérieur
             if (arc_temp_ext != NULL) {
                 lv_arc_set_value(arc_temp_ext, (int)t_exterieur);
                 lv_label_set_text_fmt(label_temp_ext_val, "%d.%d°C", (int)t_exterieur, abs((int)(t_exterieur * 10) % 10));
